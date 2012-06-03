@@ -1,0 +1,15 @@
+{       "name": "FunfOhmage",
+        "version":1,
+        "dataArchivePeriod":3600,
+        "dataRequests":{
+	        "edu.mit.media.funf.probe.builtin.LocationProbe": [
+	            { "PERIOD": 60, "DURATION": 1 }
+	        ],
+	        "edu.mit.media.funf.probe.builtin.WifiProbe": [
+	            { "PERIOD": 60 }
+	        ],
+	        "edu.mit.media.funf.probe.builtin.AccelerometerSensorProbe": [
+	            { "PERIOD": 60, "DURATION": 1}
+	        ]
+        }
+}
