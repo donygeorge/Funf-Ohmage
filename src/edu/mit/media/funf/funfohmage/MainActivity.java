@@ -1,6 +1,9 @@
 package edu.mit.media.funf.funfohmage;
 
+import org.ohmage.SharedPreferencesHelper;
+
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -22,12 +25,14 @@ import edu.mit.media.funf.funfohmage.R;
 
 public class MainActivity extends Activity implements OnSharedPreferenceChangeListener {
 
+	public static Context context;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		
-		final Context context = this;
+		context = this;
 		
 		CheckBox enabledCheckbox = (CheckBox)findViewById(R.id.enabledCheckbox); 
 		enabledCheckbox.setChecked(MainPipeline.isEnabled(context));
@@ -63,12 +68,15 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 				runOnceIntent.setAction(MainPipeline.ACTION_RUN_ONCE);
 				runOnceIntent.putExtra(MainPipeline.RUN_ONCE_PROBE_NAME, WifiProbe.class.getName());
 				startService(runOnceIntent);
+				
 				runOnceIntent.putExtra(MainPipeline.RUN_ONCE_PROBE_NAME, LocationProbe.class.getName());
 				startService(runOnceIntent);
 				runOnceIntent.putExtra(MainPipeline.RUN_ONCE_PROBE_NAME, AccelerometerSensorProbe.class.getName());
 				startService(runOnceIntent);
 			}
 		});
+		
+		SharedPreferencesHelper prefs = new SharedPreferencesHelper(this);
 	}
 
 	@Override
@@ -88,4 +96,6 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 		TextView dataCountView = (TextView)findViewById(R.id.dataCountText);
 		dataCountView.setText("Data Count: " + MainPipeline.getScanCount(this));
 	}
+	
+
 }

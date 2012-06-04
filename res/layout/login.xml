@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res/org.ohmage"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@drawable/bg_fabric" >
+
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:fillViewport="true" >
+
+        <RelativeLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res/org.ohmage"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" >
+
+            <LinearLayout
+                android:id="@+id/login_form"
+                style="@style/SignupForm"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="@dimen/gutter"
+                android:paddingTop="@dimen/gutter" >
+
+                <TextView
+                    style="@style/SignupLabel"
+                    android:text="@string/login_username_title" />
+
+                <EditText
+                    android:id="@+id/login_username"
+                    style="@style/SignupEdit"
+                    android:inputType="textEmailAddress" />
+
+                <TextView
+                    style="@style/SignupLabel"
+                    android:text="@string/login_password_title" />
+
+                <EditText
+                    android:id="@+id/login_password"
+                    style="@style/SignupEdit"
+                    android:inputType="textPassword"
+                    android:password="true"
+                    android:singleLine="true" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/login"
+                style="@style/Button.Submit"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/login_form"
+                android:layout_marginLeft="@dimen/gutter"
+                android:layout_marginRight="@dimen/gutter"
+                android:contentDescription="@string/login_activity_login_button_description"
+                android:text="@string/login_submit" />
+
+            <TextView
+                android:id="@+id/version"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_below="@id/login"
+                android:gravity="center|bottom"
+                android:padding="@dimen/gutter" />
+        </RelativeLayout>
+    </ScrollView>
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="4dp"
+        android:background="@drawable/shadow" />
+
+</RelativeLayout>
