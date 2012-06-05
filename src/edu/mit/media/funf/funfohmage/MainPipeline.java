@@ -305,13 +305,13 @@ public class MainPipeline extends ConfiguredPipeline {
 			
 			UUID id = UUID.randomUUID();
 			mobilityPointJson.put("id", id.toString());
-			mobilityPointJson.put("time", System.currentTimeMillis() / 1000L);
+			mobilityPointJson.put("time", System.currentTimeMillis());
 			mobilityPointJson.put("timezone", DateTimeZone.getDefault().getID());
 			if (uploadSensorData) 
 			{
 				mobilityPointJson.put("subtype", "sensor_data");
 				JSONObject dataJson = new JSONObject();
-				dataJson.put("mode", "error");
+				dataJson.put("mode", "still");
 				
 				if(location_inner_json.getBoolean("mHasSpeed"))
 				{
@@ -348,14 +348,14 @@ public class MainPipeline extends ConfiguredPipeline {
 					if((ts_end - ts_array.getLong(i)) > 1000000000L)
 					{
 						start_index=i;
-						Log.i("dony","Stopping at : "+start_index);
+						//Log.i("dony","Stopping at : "+start_index);
 						continue;
 					}
-					Log.i("dony","diff "+(ts_end - ts_array.getLong(i))/1000000L);
+					//Log.i("dony","diff "+(ts_end - ts_array.getLong(i))/1000000L);
 				}
 				
-				Log.i("dony","Number of values: "+(x_array.length()- start_index));
-				Log.i("dony","Total Number of values: "+x_array.length());
+				//Log.i("dony","Number of values: "+(x_array.length()- start_index));
+				//Log.i("dony","Total Number of values: "+x_array.length());
 				
 				for(int i=start_index; i< x_array.length(); i++)
 				{
@@ -390,7 +390,7 @@ public class MainPipeline extends ConfiguredPipeline {
 			} 
 			else {
 				mobilityPointJson.put("subtype", "mode_only");
-				mobilityPointJson.put("mode", "error");
+				mobilityPointJson.put("mode", "still");
 			}
 			
 			//String locationStatus = c.getString(c.getColumnIndex(MobilityInterface.KEY_STATUS));
