@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <resources>
     <!-- General -->
-    <string name="app_name">ohmage</string>
+    <string name="app_name">funf-ohmage</string>
     <string name="server_name">ohmage</string>
     <string name="cancel">Cancel</string>
     <string name="remove">Remove</string>

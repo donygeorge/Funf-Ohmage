@@ -9,7 +9,7 @@
 	            { "PERIOD": 60 }
 	        ],
 	        "edu.mit.media.funf.probe.builtin.AccelerometerSensorProbe": [
-	            { "PERIOD": 60, "DURATION": 1}
+	            { "PERIOD": 60, "DURATION": 2}
 	        ]
         }
 }

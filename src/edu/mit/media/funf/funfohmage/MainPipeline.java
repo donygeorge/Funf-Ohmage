@@ -332,11 +332,32 @@ public class MainPipeline extends ConfiguredPipeline {
 				JSONArray x_array = acc_json.getJSONArray("X");
 				JSONArray y_array = acc_json.getJSONArray("Y");
 				JSONArray z_array = acc_json.getJSONArray("Z");
+				JSONArray ts_array = acc_json.getJSONArray("EVENT_TIMESTAMP");
 				
 				JSONArray accel_data_array = new JSONArray();
 
+				int start_index=0;
+				long ts_end=0;
+				if(ts_array.length()>0)
+				{
+					ts_end = ts_array.getLong(ts_array.length()-1);
+				}
 				
-				for(int i=0; i< x_array.length(); i++)
+				for(int i= ts_array.length()-2; i>=0; i--)
+				{
+					if((ts_end - ts_array.getLong(i)) > 1000000000L)
+					{
+						start_index=i;
+						Log.i("dony","Stopping at : "+start_index);
+						continue;
+					}
+					Log.i("dony","diff "+(ts_end - ts_array.getLong(i))/1000000L);
+				}
+				
+				Log.i("dony","Number of values: "+(x_array.length()- start_index));
+				Log.i("dony","Total Number of values: "+x_array.length());
+				
+				for(int i=start_index; i< x_array.length(); i++)
 				{
 					JSONObject accel_data_json = new JSONObject();
 					accel_data_json.put("x", x_array.getDouble(i));
@@ -378,7 +399,7 @@ public class MainPipeline extends ConfiguredPipeline {
 			
 			if(location_inner_json.getBoolean("mHasAccuracy"))
 			{
-				mobilityPointJson.put("location_status", "accurate");
+				mobilityPointJson.put("location_status", "valid");
 				locationJson.put("accuracy", location_inner_json.getDouble("mAccuracy"));
 			}
 			else
