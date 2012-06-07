@@ -26,6 +26,8 @@ import edu.mit.media.funf.funfohmage.R;
 public class MainActivity extends Activity implements OnSharedPreferenceChangeListener {
 
 	public static Context context;
+	private SensorDataSource datasource;
+
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +35,9 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 		setContentView(R.layout.main);
 		
 		context = this;
+		
+		datasource = new SensorDataSource(this);
+		datasource.open();
 		
 		CheckBox enabledCheckbox = (CheckBox)findViewById(R.id.enabledCheckbox); 
 		enabledCheckbox.setChecked(MainPipeline.isEnabled(context));

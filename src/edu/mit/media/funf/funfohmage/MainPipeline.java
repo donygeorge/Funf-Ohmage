@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.joda.time.DateTimeZone;
@@ -67,6 +68,7 @@ public class MainPipeline extends ConfiguredPipeline {
 	String wifiProbe_data = null;
 	String accelerometerSensorProbe_data = null;
 	private OhmageApi mApi;
+	private SensorDataSource datasource;
 	
 	//FunfOhmage
 	public void setOhmageApi(OhmageApi api) {
@@ -448,63 +450,105 @@ public class MainPipeline extends ConfiguredPipeline {
 		}
 		
 		TAG ="dony";
-				
-		response = mApi.mobilityUpload(Config.DEFAULT_SERVER_URL, username, hashedPassword, OhmageApi.CLIENT_NAME, mobilityJsonArray.toString());
 		
-		if (response.getResult().equals(OhmageApi.Result.SUCCESS)) 
+		//Database Test
+		datasource = new SensorDataSource(this);
+		datasource.open();
+		String dataToUpload = mobilityJsonArray.toString();
+		Boolean currentData_bool = true;
+				
+		SensorData tempData = null;
+		while(true)
 		{
-			Log.i(TAG, "Successfully uploaded 1 mobility points.");
-			helper.putLastMobilityUploadTimestamp(uploadAfterTimestamp);
-		} 
-		else 
-		{
-			Log.e(TAG, "Failed to upload mobility points. Cancelling current round of mobility uploads.");
-			switch (response.getResult()) 
+			response = mApi.mobilityUpload(Config.DEFAULT_SERVER_URL, username, hashedPassword, OhmageApi.CLIENT_NAME, dataToUpload);
+		
+			
+			
+			if (response.getResult().equals(OhmageApi.Result.SUCCESS)) 
 			{
-				case FAILURE:
-					Log.e(TAG, "Upload failed due to error codes: " + Utilities.stringArrayToString(response.getErrorCodes(), ", "));
-
-					boolean isAuthenticationError = false;
-					boolean isUserDisabled = false;
-
-					for (String code : response.getErrorCodes()) 
-					{
-						if (code.charAt(1) == '2') {
-							isAuthenticationError = true;
-
-							if (code.equals("0201")) {
-								isUserDisabled = true;
+				Log.i(TAG, "Successfully uploaded 1 mobility points.");
+				if(currentData_bool)
+				{
+					currentData_bool = false;
+					Log.i(TAG, "Finished current. Starting past");
+				}
+				else
+				{
+					Log.i(TAG, " data: "+tempData.getData());
+					datasource.deleteData(tempData);
+					Log.i(TAG, "Successfully uploaded 1 past");
+				}
+					
+				helper.putLastMobilityUploadTimestamp(uploadAfterTimestamp);
+				List<SensorData> values = datasource.getAllData();
+				if(values == null || values.size()==0)
+					break;
+				else
+				{
+					tempData = values.get(0);
+					dataToUpload = tempData.getData();
+				}
+				Log.i(TAG, "number of values:"+values.size() + " data: "+tempData.getData());
+			} 
+			else 
+			{
+				Log.e(TAG, "Failed to upload mobility points. Cancelling current round of mobility uploads.");
+				
+				switch (response.getResult()) 
+				{
+					case FAILURE:
+						Log.e(TAG, "Upload failed due to error codes: " + Utilities.stringArrayToString(response.getErrorCodes(), ", "));
+	
+						boolean isAuthenticationError = false;
+						boolean isUserDisabled = false;
+	
+						for (String code : response.getErrorCodes()) 
+						{
+							if (code.charAt(1) == '2') {
+								isAuthenticationError = true;
+	
+								if (code.equals("0201")) {
+									isUserDisabled = true;
+								}
 							}
 						}
-					}
-
-					if (isUserDisabled) {
-						new SharedPreferencesHelper(this).setUserDisabled(true);
-					}
-
-//					if (isBackground) 
-//					{
-//						if (isAuthenticationError) {
-//							NotificationHelper.showAuthNotification(this);
-//						} else {
-//							NotificationHelper.showMobilityErrorNotification(this);
-//						}
-//					}
-
-					break;
-
-				case INTERNAL_ERROR:
-					Log.e(TAG, "Upload failed due to unknown internal error");
-//					if (isBackground)
-//						NotificationHelper.showMobilityErrorNotification(this);
-					break;
-
-				case HTTP_ERROR:
-					Log.e(TAG, "Upload failed due to network error");
-					break;
+	
+						if (isUserDisabled) {
+							new SharedPreferencesHelper(this).setUserDisabled(true);
+						}
+	
+	//					if (isBackground) 
+	//					{
+	//						if (isAuthenticationError) {
+	//							NotificationHelper.showAuthNotification(this);
+	//						} else {
+	//							NotificationHelper.showMobilityErrorNotification(this);
+	//						}
+	//					}
+	
+						break;
+	
+					case INTERNAL_ERROR:
+						Log.e(TAG, "Upload failed due to unknown internal error");
+	//					if (isBackground)
+	//						NotificationHelper.showMobilityErrorNotification(this);
+						break;
+	
+					case HTTP_ERROR:
+						Log.e(TAG, "Upload failed due to network error");
+						break;
+				}
+				
+				if(currentData_bool)
+				{
+					datasource.createData(dataToUpload);
+					Log.i(TAG, "Storing in database");
+				}
+				break;
 			}
-						
 		}
+		
+		datasource.close();
 		
 		//sendBroadcast(new Intent(UploadService.MOBILITY_UPLOAD_FINISHED));
 	}
