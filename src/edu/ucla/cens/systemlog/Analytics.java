@@ -212,7 +212,7 @@ public class Analytics {
 	 * @param message
 	 */
 	protected static void log(Context context, String tag, String message) {
-		Log.analytic("analytics_" + tag, preamble(context).append(message).toString());
+		//Log.analytic("analytics_" + tag, preamble(context).append(message).toString());
 	}
 
 	/**

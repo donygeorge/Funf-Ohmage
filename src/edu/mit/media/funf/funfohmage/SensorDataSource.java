@@ -6,6 +6,7 @@ import java.util.List;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
@@ -65,6 +66,11 @@ public class SensorDataSource {
 		// Make sure to close the cursor
 		cursor.close();
 		return sensorData;
+	}
+	
+	public long count()
+	{
+		return DatabaseUtils.queryNumEntries(database,MySQLiteHelper.TABLE_DATA);
 	}
 
 	private SensorData cursorToData(Cursor cursor) {

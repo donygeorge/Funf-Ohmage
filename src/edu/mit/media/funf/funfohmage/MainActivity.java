@@ -10,7 +10,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
+//import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -22,8 +22,11 @@ import edu.mit.media.funf.probe.builtin.LocationProbe;
 import edu.mit.media.funf.probe.builtin.WifiProbe;
 import edu.mit.media.funf.probe.builtin.AccelerometerSensorProbe;
 import edu.mit.media.funf.funfohmage.R;
+import edu.ucla.cens.systemlog.ISystemLog;
+import edu.ucla.cens.systemlog.Log;
 
-public class MainActivity extends Activity implements OnSharedPreferenceChangeListener {
+public class MainActivity extends Activity implements OnSharedPreferenceChangeListener 
+{
 
 	public static Context context;
 	private SensorDataSource datasource;
@@ -33,6 +36,16 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+//		Log.setAppName("funfohmagetrial"); 
+//
+//		//funfohmage
+//		if (!Log.isConnected()) 
+//		{
+//			Log.i("dony", "Connecting to Log");
+//			bindService(new Intent(ISystemLog.class.getName()),Log.SystemLogConnection, Context.BIND_AUTO_CREATE);
+//		}
+//		Log.i("dony", "in activity");
+//		
 		
 		context = this;
 		
@@ -51,18 +64,18 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 			}
 		});
 		
-		Button archiveButton = (Button)findViewById(R.id.archiveButton);
-		archiveButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Intent archiveIntent = new Intent(context, MainPipeline.class);
-				archiveIntent.setAction(MainPipeline.ACTION_ARCHIVE_DATA);
-				startService(archiveIntent);
-			}
-		});
+//		Button archiveButton = (Button)findViewById(R.id.archiveButton);
+//		archiveButton.setOnClickListener(new OnClickListener() {
+//			@Override
+//			public void onClick(View v) {
+//				Intent archiveIntent = new Intent(context, MainPipeline.class);
+//				archiveIntent.setAction(MainPipeline.ACTION_ARCHIVE_DATA);
+//				startService(archiveIntent);
+//			}
+//		});
 		
 		MainPipeline.getSystemPrefs(this).registerOnSharedPreferenceChangeListener(this);
-		updateScanCount();
+		updatedbCount();
 		
 		
 		Button scanNowButton = (Button)findViewById(R.id.scanNowButton);
@@ -73,7 +86,6 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 				runOnceIntent.setAction(MainPipeline.ACTION_RUN_ONCE);
 				runOnceIntent.putExtra(MainPipeline.RUN_ONCE_PROBE_NAME, WifiProbe.class.getName());
 				startService(runOnceIntent);
-				
 				runOnceIntent.putExtra(MainPipeline.RUN_ONCE_PROBE_NAME, LocationProbe.class.getName());
 				startService(runOnceIntent);
 				runOnceIntent.putExtra(MainPipeline.RUN_ONCE_PROBE_NAME, AccelerometerSensorProbe.class.getName());
@@ -83,23 +95,30 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 		
 		SharedPreferencesHelper prefs = new SharedPreferencesHelper(this);
 	}
+	
+	@Override
+	public void onDestroy() 
+	{
+		super.onDestroy();
+	}
+		
 
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 		Log.i("WifiScanner", "SharedPref change: " + key);
-		if (MainPipeline.SCAN_COUNT_KEY.equals(key)) {
+		if (MainPipeline.DATABASE_COUNT_KEY.equals(key)) {
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					updateScanCount();
+					updatedbCount();
 				}
 			});
 		}
 	}
 	
-	private void updateScanCount() {
+	private void updatedbCount() {
 		TextView dataCountView = (TextView)findViewById(R.id.dataCountText);
-		dataCountView.setText("Data Count: " + MainPipeline.getScanCount(this));
+		dataCountView.setText("Data Count: " + MainPipeline.getdbCount(this));
 	}
 	
 

@@ -3,7 +3,7 @@
         "dataArchivePeriod":3600,
         "dataRequests":{
 	        "edu.mit.media.funf.probe.builtin.LocationProbe": [
-	            { "PERIOD": 60, "DURATION": 1 }
+	            { "PERIOD": 60, "DURATION": 15 }
 	        ],
 	        "edu.mit.media.funf.probe.builtin.WifiProbe": [
 	            { "PERIOD": 60 }

@@ -45,7 +45,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Handler;
+//import android.util.Log;
 import edu.mit.media.funf.IOUtils;
 import edu.mit.media.funf.Utils;
 import edu.mit.media.funf.configured.ConfiguredPipeline;
@@ -53,6 +54,10 @@ import edu.mit.media.funf.configured.FunfConfig;
 import edu.mit.media.funf.probe.Probe;
 import edu.mit.media.funf.storage.BundleSerializer;
 import edu.mit.media.funf.storage.NameValueDatabaseService;
+import edu.ucla.cens.systemlog.ISystemLog;
+import edu.ucla.cens.systemlog.Log;
+
+
 public class MainPipeline extends ConfiguredPipeline {
 	
 	public static String TAG = "FunfBGCollector";
@@ -86,6 +91,30 @@ public class MainPipeline extends ConfiguredPipeline {
 	}
 	
 	@Override
+	public void onCreate() {
+		super.onCreate();
+		Log.setAppName("funfohmagetrial"); 
+		//funfohmage
+		if (!Log.isConnected()) 
+		{
+			Log.i("dony", "Connecting to Log");
+			bindService(new Intent(ISystemLog.class.getName()),Log.SystemLogConnection, Context.BIND_AUTO_CREATE);
+		}
+		Log.i("dony", "Log Starting in service");
+	}
+
+
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		if (Log.isConnected()) 
+		{
+			unbindService(Log.SystemLogConnection);
+		}
+	}
+	
+	@Override
 	public BundleSerializer getBundleSerializer() {
 		return new BundleToJson();
 	}
@@ -103,20 +132,26 @@ public class MainPipeline extends ConfiguredPipeline {
 //		incrementCount();
 //	}
 
-	public static final String SCAN_COUNT_KEY = "SCAN_COUNT";
+//	public static final String SCAN_COUNT_KEY = "SCAN_COUNT";
+//	
+//	public static long getScanCount(Context context) {
+//		return getSystemPrefs(context).getLong(SCAN_COUNT_KEY, 0L);
+//	}
 	
-	public static long getScanCount(Context context) {
-		return getSystemPrefs(context).getLong(SCAN_COUNT_KEY, 0L);
+	public static final String DATABASE_COUNT_KEY = "DATABASE_COUNT";
+	
+	public static long getdbCount(Context context) {
+		return getSystemPrefs(context).getLong(DATABASE_COUNT_KEY, 0L);
 	}
 	
-	private void incrementCount() {
-		boolean success = false;
-		while(!success) { 
-			SharedPreferences.Editor editor = getSystemPrefs().edit();
-			editor.putLong(SCAN_COUNT_KEY, getScanCount(this) + 1L);
-			success = editor.commit();
-		}
-	}
+//	private void incrementCount() {
+//		boolean success = false;
+//		while(!success) { 
+//			SharedPreferences.Editor editor = getSystemPrefs().edit();
+//			editor.putLong(SCAN_COUNT_KEY, getScanCount(this) + 1L);
+//			success = editor.commit();
+//		}
+//	}
 	
 	@Override
 	public void onStatusReceived(Probe.Status status) {
@@ -240,6 +275,9 @@ public class MainPipeline extends ConfiguredPipeline {
 		{
 			Log.w("dony","ts: All data received");
 			uploadRequest(accelerometerSensorProbe_data, locationProbe_data, wifiProbe_data); 
+			Log.v("dony","location:"+locationProbe_data);
+			Log.v("dony","wifi:"+wifiProbe_data);
+			Log.v("dony","acc:"+accelerometerSensorProbe_data);
 			locationProbe_data = null;
 			wifiProbe_data = null;
 			accelerometerSensorProbe_data = null;
@@ -277,8 +315,8 @@ public class MainPipeline extends ConfiguredPipeline {
 			uploadAfterTimestamp = helper.getLoginTimestamp();
 		}
 		Log.w("dony","user name"+username);
-		Log.w("dony","hashed"+hashedPassword);
-		Log.w("dony","uploadTS"+uploadAfterTimestamp);
+		//Log.w("dony","hashed"+hashedPassword);
+		//Log.w("dony","uploadTS"+uploadAfterTimestamp);
 
 		
 		Long now = System.currentTimeMillis();
@@ -309,6 +347,7 @@ public class MainPipeline extends ConfiguredPipeline {
 			mobilityPointJson.put("id", id.toString());
 			mobilityPointJson.put("time", System.currentTimeMillis());
 			mobilityPointJson.put("timezone", DateTimeZone.getDefault().getID());
+			mobilityPointJson.put("mode", "still");
 			if (uploadSensorData) 
 			{
 				mobilityPointJson.put("subtype", "sensor_data");
@@ -318,17 +357,17 @@ public class MainPipeline extends ConfiguredPipeline {
 				if(location_inner_json.getBoolean("mHasSpeed"))
 				{
 					try {
-						float speed = Float.parseFloat(location_inner_json.getString("mSpeed"));
+						double speed = Double.parseDouble(location_inner_json.getString("mSpeed"));
 						dataJson.put("speed", speed);
 					} catch (NumberFormatException e) {
-						dataJson.put("speed", "NaN");
+						dataJson.put("speed", (double)(-1));
 					} catch (JSONException e) {
-						dataJson.put("speed", "NaN");
+						dataJson.put("speed", (double)(-1));
 					}
 				}
 				else
 				{
-					dataJson.put("speed", "NaN");
+					dataJson.put("speed", (float)(-1));
 				}
 				
 				JSONArray x_array = acc_json.getJSONArray("X");
@@ -371,7 +410,8 @@ public class MainPipeline extends ConfiguredPipeline {
 				dataJson.put("accel_data",accel_data_array);
 				
 				JSONObject wifiJson = new JSONObject();
-				wifiJson.put("time", wifi_json.getLong("TIMESTAMP"));
+//				wifiJson.put("time", wifi_json.getLong("TIMESTAMP"));
+				wifiJson.put("time", System.currentTimeMillis());		
 				wifiJson.put("timezone",  DateTimeZone.getDefault().getID());
 				JSONArray scan_array = wifi_json.getJSONArray("SCAN_RESULTS");
 				JSONArray scan_data_array = new JSONArray();
@@ -381,7 +421,7 @@ public class MainPipeline extends ConfiguredPipeline {
 					JSONObject scan_element_json = new JSONObject();					
 					JSONObject scan_input_json = scan_array.getJSONObject(i);
 					
-					scan_element_json.put("ssid", scan_input_json.getString("SSID"));
+					scan_element_json.put("ssid", scan_input_json.getString("BSSID"));
 					scan_element_json.put("strength", scan_input_json.getDouble("level"));
 					scan_data_array.put(scan_element_json);
 				}
@@ -436,7 +476,8 @@ public class MainPipeline extends ConfiguredPipeline {
 				locationJson.put("accuracy", "NaN");
 			}
 			
-			locationJson.put("time",  location_json.getLong("TIMESTAMP"));
+//			locationJson.put("time",  location_json.getLong("TIMESTAMP"));
+			locationJson.put("time", location_inner_json.getDouble("mTime"));
 			locationJson.put("timezone", DateTimeZone.getDefault().getID());
 			
 			mobilityPointJson.put("location", locationJson);
@@ -462,11 +503,15 @@ public class MainPipeline extends ConfiguredPipeline {
 		{
 			response = mApi.mobilityUpload(Config.DEFAULT_SERVER_URL, username, hashedPassword, OhmageApi.CLIENT_NAME, dataToUpload);
 		
+			SharedPreferences.Editor editor = getSystemPrefs().edit();
+			editor.putLong(DATABASE_COUNT_KEY, datasource.count());
+			editor.commit();
+			Log.i(TAG,"Number of database points:"+datasource.count());
 			
 			
 			if (response.getResult().equals(OhmageApi.Result.SUCCESS)) 
 			{
-				Log.i(TAG, "Successfully uploaded 1 mobility points.");
+				Log.i(TAG, "Successfully uploaded 1 mobility points:"+dataToUpload);
 				if(currentData_bool)
 				{
 					currentData_bool = false;
@@ -474,7 +519,7 @@ public class MainPipeline extends ConfiguredPipeline {
 				}
 				else
 				{
-					Log.i(TAG, " data: "+tempData.getData());
+					Log.i(TAG, " data to be deleted: "+tempData.getData());
 					datasource.deleteData(tempData);
 					Log.i(TAG, "Successfully uploaded 1 past");
 				}
@@ -544,6 +589,8 @@ public class MainPipeline extends ConfiguredPipeline {
 					datasource.createData(dataToUpload);
 					Log.i(TAG, "Storing in database");
 				}
+				Log.i(TAG, "Breaking due to Error");
+
 				break;
 			}
 		}
